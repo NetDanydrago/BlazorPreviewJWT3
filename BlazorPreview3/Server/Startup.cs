@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System;
 using System.Linq;
 
 namespace BlazorPreview3.Server
@@ -24,6 +28,20 @@ namespace BlazorPreview3.Server
         {
 
             services.AddControllersWithViews();
+            //JWT
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                  .AddJwtBearer(options =>
+               options.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuer = false,
+                   ValidateAudience = false,
+                   ValidateLifetime = true,
+                   ValidateIssuerSigningKey = true,
+                   IssuerSigningKey = new SymmetricSecurityKey(
+                  Encoding.UTF8.GetBytes(Configuration["jwt:key"])),
+                   ClockSkew = TimeSpan.Zero
+               });
+            //JWT
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,7 +64,8 @@ namespace BlazorPreview3.Server
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

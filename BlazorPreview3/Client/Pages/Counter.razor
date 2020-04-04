@@ -1,16 +1,36 @@
 ﻿@page "/counter"
-
-<h1>Counter</h1>
-
-<p>Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
+@inject HttpClient HttpClient
+<AuthorizeView>
+    <Authorized>
+        <h1>Counter</h1>
+        <p>Current count: @currentCount</p>
+        <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    </Authorized>
+    <NotAuthorized>
+        <div>
+            No estas Autenticado
+        </div>
+        <div>
+            <input type="text" @bind="Username" placeholder="Usuario" />
+            <input type="password" @bind="Password" placeholder="Contraseña" />
+            <button @onclick="Login">Iniciar</button>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
 @code {
     private int currentCount = 0;
+
+    string Username;
+    string Password;
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+
+    private async Task Login()
+    {
+        UserToken Token = await HttpClient.PostJsonAsync<UserToken>("auth/login", new User() 
+        {  Email = Username, Password = Password, Name = "UsuarioFalso"});
     }
 }
